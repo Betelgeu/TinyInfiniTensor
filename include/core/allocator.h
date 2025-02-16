@@ -28,6 +28,9 @@ namespace infini {
     // HINT: 可以使用一个 map 来存储 free block，key 为 block 的起始/结尾地址，value 为 block 的大小
     // =================================== 作业 ===================================
 
+    std::map<size_t, size_t> freeBlocks{{0, 10000000}};
+
+
   public:
     Allocator(Runtime runtime);
 

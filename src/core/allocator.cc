@@ -32,7 +32,22 @@ namespace infini
         // =================================== 作业 ===================================
         // TODO: 设计一个算法来分配内存，返回起始地址偏移量
         // =================================== 作业 ===================================
-
+        // 遍历freeBlocks，找到第一个满足条件的block即可
+        for(auto it = freeBlocks.begin(); it != freeBlocks.end(); it++) {
+            if(it->second >= size) {
+                size_t addr = it->first;
+                size_t remain = it->second - size;
+                freeBlocks.erase(it);
+                if (remain > 0) {
+                    freeBlocks[addr + size] = remain;
+                }
+                used += size;
+                peak = std::max(peak, used);
+                return addr;
+            }
+        }
+        // 如果没有找到合适的block，抛出异常
+        throw std::runtime_error("No enough memory");
         return 0;
     }
 
@@ -44,6 +59,29 @@ namespace infini
         // =================================== 作业 ===================================
         // TODO: 设计一个算法来回收内存
         // =================================== 作业 ===================================
+        size_t lhs = addr;
+        size_t rhs = addr + size;
+
+        auto it = freeBlocks.lower_bound(addr);
+        if (it != freeBlocks.begin()) {
+            auto jt = it--;
+            if (jt->first + jt->second >= addr) {
+                lhs = jt->first;
+                this->used += jt->second;
+                freeBlocks.erase(jt);
+            }
+        }
+        while (it != freeBlocks.end() && it->first <= addr + size) {
+            rhs = std::max(it->first + it->second, rhs);
+            auto jt = it; jt++;
+            this->used += it->second;
+            freeBlocks.erase(it);
+            it = jt;
+        }
+        
+        freeBlocks[lhs] = rhs - lhs;
+        this->used -= (rhs - lhs);
+
     }
 
     void *Allocator::getPtr()
